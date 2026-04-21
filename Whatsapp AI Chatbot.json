@@ -3,93 +3,6 @@
   "nodes": [
     {
       "parameters": {
-        "httpMethod": "POST",
-        "path": "whatsapp",
-        "options": {}
-      },
-      "type": "n8n-nodes-base.webhook",
-      "typeVersion": 2.1,
-      "position": [
-        0,
-        0
-      ],
-      "id": "1f6e9aea-1f29-4e5e-bdf8-9c203d96c997",
-      "name": "Webhook",
-      "webhookId": "f700ae88-1d3c-4274-99ea-7a0a628aa037"
-    },
-    {
-      "parameters": {
-        "method": "POST",
-        "url": "=https://api.twilio.com/2010-04-01/Accounts/AC689d5ec352aa67f6d484eccc25d6b3fe/Messages.json",
-        "authentication": "genericCredentialType",
-        "genericAuthType": "httpBasicAuth",
-        "sendBody": true,
-        "contentType": "form-urlencoded",
-        "specifyBody": "string",
-        "body": "=To={{ $('Code').item.json.from }}&From=whatsapp%3A%2B14155238886&Body={{ $('Code1').item.json.reply }}",
-        "options": {}
-      },
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.4,
-      "position": [
-        896,
-        0
-      ],
-      "id": "8025c716-917a-441f-bad2-5a38af04a4fe",
-      "name": "HTTP Request1",
-      "credentials": {
-        "httpBasicAuth": {
-          "id": "qXo0zAIL0p3oAyCp",
-          "name": "Unnamed credential"
-        }
-      }
-    },
-    {
-      "parameters": {
-        "jsCode": "const webhookData = $('Webhook').item.json;\n\n// Twilio sends data either nested under 'body' or at root level\nconst body = webhookData.body || webhookData;\n\nconst incomingMessage = body.Body;\nconst fromNumber = body.From;\nconst toNumber = body.To;\n\n// Ensure + is present in the from number\nconst fixedFrom = fromNumber && !fromNumber.includes(':+') \n  ? fromNumber.replace('whatsapp:', 'whatsapp:+') \n  : fromNumber;\n\nreturn [{\n  json: {\n    message: incomingMessage,\n    from: fixedFrom,\n    to: toNumber\n  }\n}];"
-      },
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
-      "position": [
-        224,
-        0
-      ],
-      "id": "24eae5da-b69d-4375-8c17-11ce4e3d1566",
-      "name": "Code"
-    },
-    {
-      "parameters": {
-        "jsCode": "const reply = $('HTTP Request2').item.json.candidates[0].content.parts[0].text;\nconst from = $('Code').item.json.from;\nconst to = $('Code').item.json.to;\n\nreturn [{\n  json: {\n    reply: reply.trim(),\n    from: from,\n    to: to\n  }\n}];"
-      },
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
-      "position": [
-        672,
-        0
-      ],
-      "id": "21983939-41dc-4c2d-9411-31f90434f8f0",
-      "name": "Code1"
-    },
-    {
-      "parameters": {
-        "method": "POST",
-        "url": "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=GEMINI_API_KEY",
-        "sendBody": true,
-        "specifyBody": "json",
-        "jsonBody": "={\n  \"contents\": [{\n    \"parts\": [{\n      \"text\": \"You are Maya, a friendly AI sales assistant for VisionGroup — a company that builds AI automation solutions for enterprises. Reply to this WhatsApp message in a helpful, concise and conversational tone. Keep replies under 100 words. If the person asks about pricing, say our team will follow up. If they want a demo, say you will arrange one shortly.\\n\\nMessage: {{ $('Code').item.json.message }}\"\n    }]\n  }],\n  \"generationConfig\": {\n    \"temperature\": 0.7,\n    \"maxOutputTokens\": 200\n  }\n}",
-        "options": {}
-      },
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.4,
-      "position": [
-        448,
-        0
-      ],
-      "id": "6c4ae391-ba66-41b6-90ce-19384f95b45e",
-      "name": "HTTP Request2"
-    },
-    {
-      "parameters": {
         "operation": "append",
         "documentId": {
           "__rl": true,
@@ -109,9 +22,9 @@
           "mappingMode": "defineBelow",
           "value": {
             "Date": "={{ $now }}",
-            "From": "={{ $('Code').item.json.from }}",
-            "Message": "={{ $('Code').item.json.message }}",
-            "Bot Reply": "={{ $('Code1').item.json.reply }}"
+            "From": "={{ $('Extract Message Data').item.json.from }}",
+            "Message": "={{ $('Extract Message Data').item.json.message }}",
+            "Bot Reply": "={{ $('Parse Response ').item.json.reply }}"
           },
           "matchingColumns": [],
           "schema": [
@@ -175,59 +88,148 @@
           "name": "Google Sheets OAuth2 API"
         }
       }
+    },
+    {
+      "parameters": {
+        "jsCode": "const webhookData = $('Receive Whatsapp Message').item.json;\n\n// Twilio sends data either nested under 'body' or at root level\nconst body = webhookData.body || webhookData;\n\nconst incomingMessage = body.Body;\nconst fromNumber = body.From;\nconst toNumber = body.To;\n\n// Ensure + is present in the from number\nconst fixedFrom = fromNumber && !fromNumber.includes(':+') \n  ? fromNumber.replace('whatsapp:', 'whatsapp:+') \n  : fromNumber;\n\nreturn [{\n  json: {\n    message: incomingMessage,\n    from: fixedFrom,\n    to: toNumber\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        224,
+        0
+      ],
+      "id": "24eae5da-b69d-4375-8c17-11ce4e3d1566",
+      "name": "Extract Message Data"
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "whatsapp",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "1f6e9aea-1f29-4e5e-bdf8-9c203d96c997",
+      "name": "Receive Whatsapp Message",
+      "webhookId": "f700ae88-1d3c-4274-99ea-7a0a628aa037"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=AIzaSyCPTid1fR31ziZw9PjbL28n1XOG9i0Y-ag",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"contents\": [{\n    \"parts\": [{\n      \"text\": \"You are Maya, a friendly AI sales assistant for VisionGroup — a company that builds AI automation solutions for enterprises. Reply to this WhatsApp message in a helpful, concise and conversational tone. Keep replies under 100 words. If the person asks about pricing, say our team will follow up. If they want a demo, say you will arrange one shortly.\\n\\nMessage: {{ $('Extract Message Data').item.json.message }}\"\n    }]\n  }],\n  \"generationConfig\": {\n    \"temperature\": 0.7,\n    \"maxOutputTokens\": 200\n  }\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        448,
+        0
+      ],
+      "id": "6c4ae391-ba66-41b6-90ce-19384f95b45e",
+      "name": "Generate AI Reply(Gemini)",
+      "retryOnFail": true,
+      "waitBetweenTries": 2000
+    },
+    {
+      "parameters": {
+        "jsCode": "const reply = $('Generate AI Reply(Gemini)').item.json.candidates[0].content.parts[0].text;\nconst from = $('Extract Message Data').item.json.from;\nconst to = $('Extract Message Data').item.json.to;\n\nreturn [{\n  json: {\n    reply: reply.trim(),\n    from: from,\n    to: to\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        672,
+        0
+      ],
+      "id": "21983939-41dc-4c2d-9411-31f90434f8f0",
+      "name": "Parse Response "
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://api.twilio.com/2010-04-01/Accounts/AC689d5ec352aa67f6d484eccc25d6b3fe/Messages.json",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBasicAuth",
+        "sendBody": true,
+        "contentType": "form-urlencoded",
+        "specifyBody": "string",
+        "body": "=To={{ $('Extract Message Data').item.json.from }}&From=whatsapp%3A%2B14155238886&Body={{ $('Parse Response ').item.json.reply }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        896,
+        0
+      ],
+      "id": "8025c716-917a-441f-bad2-5a38af04a4fe",
+      "name": "Send Whatsapp Reply",
+      "credentials": {
+        "httpBasicAuth": {
+          "id": "qXo0zAIL0p3oAyCp",
+          "name": "Unnamed credential"
+        }
+      }
     }
   ],
   "pinData": {},
   "connections": {
-    "Webhook": {
+    "Extract Message Data": {
       "main": [
         [
           {
-            "node": "Code",
+            "node": "Generate AI Reply(Gemini)",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Code": {
+    "Receive Whatsapp Message": {
       "main": [
         [
           {
-            "node": "HTTP Request2",
+            "node": "Extract Message Data",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Code1": {
+    "Generate AI Reply(Gemini)": {
       "main": [
         [
           {
-            "node": "HTTP Request1",
+            "node": "Parse Response ",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "HTTP Request1": {
+    "Parse Response ": {
+      "main": [
+        [
+          {
+            "node": "Send Whatsapp Reply",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send Whatsapp Reply": {
       "main": [
         [
           {
             "node": "Whatsapp Logs",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "HTTP Request2": {
-      "main": [
-        [
-          {
-            "node": "Code1",
             "type": "main",
             "index": 0
           }
@@ -243,7 +245,7 @@
     "callerPolicy": "workflowsFromSameOwner",
     "availableInMCP": false
   },
-  "versionId": "de979ce5-5f14-4bf7-89cd-0118007e1370",
+  "versionId": "b56a9f9b-e0a5-402c-bad0-de8a8d4d4bd9",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "599dcf6d65c89cba2cc875b1eac225063026181c4a85db9aa864012050231e18"
