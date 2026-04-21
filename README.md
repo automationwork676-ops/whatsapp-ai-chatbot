@@ -17,7 +17,7 @@ Twilio webhook → n8n → Gemini AI → Twilio reply → Google Sheets
 - n8n (workflow automation)
 - Twilio (WhatsApp API)
 - Google Gemini API (AI responses)
-- Google Sheets (conversation logging)
+- Google Sheets (conversation logging) 
 
 ## How to import
 1. Download workflow.json
@@ -29,6 +29,7 @@ Twilio webhook → n8n → Gemini AI → Twilio reply → Google Sheets
 ## Use case
 Demonstrates end-to-end WhatsApp AI chatbot automation —
 applicable to customer engagement and AI sales deployments.
+Google Sheet Link for Conversation Logs - [Conversation Logs](https://docs.google.com/spreadsheets/d/1PA8LO9HWCCf9npbSHdfp8Df88JS3oih4rm8yWXS7OeU/edit?usp=sharing)
 
 ---
 Built by Mohamad Ashraf bin Oothman Sah
