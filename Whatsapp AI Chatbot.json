@@ -1,0 +1,253 @@
+{
+  "name": "Whatsapp AI Chatbot",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "whatsapp",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "1f6e9aea-1f29-4e5e-bdf8-9c203d96c997",
+      "name": "Webhook",
+      "webhookId": "f700ae88-1d3c-4274-99ea-7a0a628aa037"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://api.twilio.com/2010-04-01/Accounts/AC689d5ec352aa67f6d484eccc25d6b3fe/Messages.json",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBasicAuth",
+        "sendBody": true,
+        "contentType": "form-urlencoded",
+        "specifyBody": "string",
+        "body": "=To={{ $('Code').item.json.from }}&From=whatsapp%3A%2B14155238886&Body={{ $('Code1').item.json.reply }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        896,
+        0
+      ],
+      "id": "8025c716-917a-441f-bad2-5a38af04a4fe",
+      "name": "HTTP Request1",
+      "credentials": {
+        "httpBasicAuth": {
+          "id": "qXo0zAIL0p3oAyCp",
+          "name": "Unnamed credential"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const webhookData = $('Webhook').item.json;\n\n// Twilio sends data either nested under 'body' or at root level\nconst body = webhookData.body || webhookData;\n\nconst incomingMessage = body.Body;\nconst fromNumber = body.From;\nconst toNumber = body.To;\n\n// Ensure + is present in the from number\nconst fixedFrom = fromNumber && !fromNumber.includes(':+') \n  ? fromNumber.replace('whatsapp:', 'whatsapp:+') \n  : fromNumber;\n\nreturn [{\n  json: {\n    message: incomingMessage,\n    from: fixedFrom,\n    to: toNumber\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        224,
+        0
+      ],
+      "id": "24eae5da-b69d-4375-8c17-11ce4e3d1566",
+      "name": "Code"
+    },
+    {
+      "parameters": {
+        "jsCode": "const reply = $('HTTP Request2').item.json.candidates[0].content.parts[0].text;\nconst from = $('Code').item.json.from;\nconst to = $('Code').item.json.to;\n\nreturn [{\n  json: {\n    reply: reply.trim(),\n    from: from,\n    to: to\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        672,
+        0
+      ],
+      "id": "21983939-41dc-4c2d-9411-31f90434f8f0",
+      "name": "Code1"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=AIzaSyCPTid1fR31ziZw9PjbL28n1XOG9i0Y-ag",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"contents\": [{\n    \"parts\": [{\n      \"text\": \"You are Maya, a friendly AI sales assistant for VisionGroup — a company that builds AI automation solutions for enterprises. Reply to this WhatsApp message in a helpful, concise and conversational tone. Keep replies under 100 words. If the person asks about pricing, say our team will follow up. If they want a demo, say you will arrange one shortly.\\n\\nMessage: {{ $('Code').item.json.message }}\"\n    }]\n  }],\n  \"generationConfig\": {\n    \"temperature\": 0.7,\n    \"maxOutputTokens\": 200\n  }\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        448,
+        0
+      ],
+      "id": "6c4ae391-ba66-41b6-90ce-19384f95b45e",
+      "name": "HTTP Request2"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1PA8LO9HWCCf9npbSHdfp8Df88JS3oih4rm8yWXS7OeU",
+          "mode": "list",
+          "cachedResultName": " Conversation Logs",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1PA8LO9HWCCf9npbSHdfp8Df88JS3oih4rm8yWXS7OeU/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Whatsapp",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1PA8LO9HWCCf9npbSHdfp8Df88JS3oih4rm8yWXS7OeU/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Date": "={{ $now }}",
+            "From": "={{ $('Code').item.json.from }}",
+            "Message": "={{ $('Code').item.json.message }}",
+            "Bot Reply": "={{ $('Code1').item.json.reply }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Date",
+              "displayName": "Date",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "From",
+              "displayName": "From",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Message",
+              "displayName": "Message",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Bot Reply",
+              "displayName": "Bot Reply",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        1120,
+        0
+      ],
+      "id": "d271f023-f876-498c-9951-5eb0d23ccfa3",
+      "name": "Whatsapp Logs",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "iV7efAM1pdINZ7xC",
+          "name": "Google Sheets OAuth2 API"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Code",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code1": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request1": {
+      "main": [
+        [
+          {
+            "node": "Whatsapp Logs",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request2": {
+      "main": [
+        [
+          {
+            "node": "Code1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "timeSavedMode": "fixed",
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": false
+  },
+  "versionId": "de979ce5-5f14-4bf7-89cd-0118007e1370",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "599dcf6d65c89cba2cc875b1eac225063026181c4a85db9aa864012050231e18"
+  },
+  "id": "E9yswLgA9ArU4ES7",
+  "tags": []
+}
