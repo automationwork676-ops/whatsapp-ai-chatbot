@@ -73,7 +73,7 @@
     {
       "parameters": {
         "method": "POST",
-        "url": "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=AIzaSyCPTid1fR31ziZw9PjbL28n1XOG9i0Y-ag",
+        "url": "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=GEMINI_API_KEY",
         "sendBody": true,
         "specifyBody": "json",
         "jsonBody": "={\n  \"contents\": [{\n    \"parts\": [{\n      \"text\": \"You are Maya, a friendly AI sales assistant for VisionGroup — a company that builds AI automation solutions for enterprises. Reply to this WhatsApp message in a helpful, concise and conversational tone. Keep replies under 100 words. If the person asks about pricing, say our team will follow up. If they want a demo, say you will arrange one shortly.\\n\\nMessage: {{ $('Code').item.json.message }}\"\n    }]\n  }],\n  \"generationConfig\": {\n    \"temperature\": 0.7,\n    \"maxOutputTokens\": 200\n  }\n}",
